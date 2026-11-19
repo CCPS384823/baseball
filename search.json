@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Baseball History in Data",
+    "section": "",
+    "text": "Welcome to our project! This site explores the rich history of Major League Baseball through its data, using the comprehensive Lahman Baseball Database.\nOur analysis focuses on home run trends across two key perspectives:\n\nHome runs: Investigates league-wide home run trends over time. We show how raw home run totals can create misleading “collapses” during shortened seasons (such as 1981, 1994, and 2020), and how calculating home runs per game reveals the true historical progression of power hitting.\nSluggers: Examines the top 15 all-time career home run leaders, highlighting players who were active during the 1994–2009 “steroid era” and zooming in on the season-by-season trajectory of all-time leader Barry Bonds.\n\nUse the navigation bar at the top of the page to explore each section!"
+  },
+  {
+    "objectID": "sluggers.html",
+    "href": "sluggers.html",
+    "title": "Sluggers",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(Lahman)\n\n\nBatting |&gt;\n  group_by(playerID) |&gt;\n  summarize(\n    career_HR = sum(HR, na.rm = TRUE),\n    first_year = min(yearID, na.rm = TRUE),\n    last_year = max(yearID, na.rm = TRUE)\n  ) |&gt;\n  arrange(desc(career_HR)) |&gt;\n  head(15) |&gt;\n  left_join(People, by = \"playerID\") |&gt;\n  mutate(\n    name = paste(nameFirst, nameLast),\n    span = paste(first_year, last_year, sep = \"-\"),\n    steroid_era = last_year &gt;= 1994 & first_year &lt;= 2009\n  ) |&gt;\n  ggplot(aes(x = career_HR, y = reorder(name, career_HR), fill = steroid_era)) +\n  geom_col() +\n  labs(\n    title = \"Top 15 All-Time Home Run Leaders\",\n    x = \"Career Home Runs\",\n    y = NULL,\n    fill = \"Active 1994-2009\",\n    caption = \"Source: Lahman Baseball Database\"\n  )\n\n\n\n\n\n\n\n\n\nBatting |&gt;\n  left_join(People, by = \"playerID\") |&gt;\n  filter(nameFirst == \"Barry\", nameLast == \"Bonds\") |&gt;\n  ggplot(aes(x = yearID, y = HR)) +\n  geom_col() +\n  labs(\n    title = \"Barry Bonds Home Runs by Season\",\n    x = \"Season\",\n    y = \"Home Runs\",\n    caption = \"Source: Lahman Baseball Database\"\n  )"
+  },
+  {
+    "objectID": "home-runs.html",
+    "href": "home-runs.html",
+    "title": "Home runs",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(Lahman)\n\n\nhr_by_season &lt;- Teams |&gt;\n  group_by(yearID) |&gt;\n  summarize(\n    total_HR = sum(HR, na.rm = TRUE),\n    total_G = sum(G, na.rm = TRUE)\n  ) |&gt;\n  mutate(\n    hr_per_game = total_HR / total_G,\n    season_type = if_else(yearID %in% c(1918, 1919, 1981, 1994, 1995, 2020), \"Shortened\", \"Full\")\n  )\n\n\nhr_by_season |&gt;\n  ggplot(aes(x = yearID, y = hr_per_game)) +\n  geom_line(color = \"darkgray\") +\n  geom_point(aes(color = season_type)) +\n  labs(\n    title = \"Home Runs per Game in Major League Baseball by Season\",\n    x = \"Season\",\n    y = \"Home Runs per Game\",\n    color = \"Season Type\",\n    caption = \"Source: Lahman Baseball Database\"\n  )\n\n\n\n\n\n\n\n\n\nTeams |&gt;\n  filter(yearID %in% c(1981, 1994, 2019, 2020)) |&gt;\n  group_by(yearID) |&gt;\n  summarize(\n    total_HR = sum(HR, na.rm = TRUE),\n    total_G = sum(G, na.rm = TRUE)\n  ) |&gt;\n  mutate(hr_per_game = total_HR / total_G)\n\n# A tibble: 4 × 4\n  yearID total_HR total_G hr_per_game\n   &lt;int&gt;    &lt;int&gt;   &lt;int&gt;       &lt;dbl&gt;\n1   1981     1781    2788       0.639\n2   1994     3306    3200       1.03 \n3   2019     6776    4858       1.39 \n4   2020     2304    1796       1.28"
+  }
+]
